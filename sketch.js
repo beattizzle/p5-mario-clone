@@ -74,7 +74,7 @@ class Player {
     // Apply gravity
     this.vel.y += this.gravity;
 
-    // Movement
+    // Movement relative to camera
     let moveDir = createVector(0, 0, 0);
     let currentSpeed = keys["Shift"] ? this.runSpeed : this.speed;
 
@@ -94,7 +94,16 @@ class Player {
     // Normalize and apply speed
     if (moveDir.mag() > 0) {
       moveDir.normalize();
+
+      // Rotate movement direction based on camera angle
+      let camAngle = gameCamera.angleH;
+      let rotatedX = moveDir.x * cos(camAngle) - moveDir.z * sin(camAngle);
+      let rotatedZ = moveDir.x * sin(camAngle) + moveDir.z * cos(camAngle);
+
+      moveDir.x = rotatedX;
+      moveDir.z = rotatedZ;
       moveDir.mult(currentSpeed);
+
       this.vel.x = moveDir.x;
       this.vel.z = moveDir.z;
 
