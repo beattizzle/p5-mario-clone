@@ -55,9 +55,9 @@ function draw() {
 class Player {
   constructor() {
     this.size = 20;
-    this.width = 12;  // Player bounding box width (X)
+    this.width = 12; // Player bounding box width (X)
     this.height = 40; // Player bounding box height (Y)
-    this.depth = 12;  // Player bounding box depth (Z)
+    this.depth = 12; // Player bounding box depth (Z)
     // Start high above ground so player falls naturally
     this.pos = createVector(0, -100, 0);
     this.vel = createVector(0, 0, 0);
@@ -65,7 +65,7 @@ class Player {
     this.angle = 0;
     this.speed = 0.5;
     this.runSpeed = 1.0;
-    this.jumpForce = 4.0; // Increased jump height
+    this.jumpForce = 8.0; // Increased jump height
     this.isGrounded = false;
     this.gravity = 0.15;
   }
@@ -119,21 +119,25 @@ class Player {
 
     // Update position with X movement
     this.pos.x += this.vel.x;
-    this.handleCollisions('x', oldPos);
+    this.handleCollisions("x", oldPos);
 
     // Update position with Y movement
     this.pos.y += this.vel.y;
-    this.handleCollisions('y', oldPos);
+    this.handleCollisions("y", oldPos);
 
     // Update position with Z movement
     this.pos.z += this.vel.z;
-    this.handleCollisions('z', oldPos);
+    this.handleCollisions("z", oldPos);
   }
 
   handleCollisions(axis, oldPos) {
     // Check collision with all solid objects
     for (let obj of levelObjects) {
-      if (obj.type === "platform" || obj.type === "block" || obj.type === "castle") {
+      if (
+        obj.type === "platform" ||
+        obj.type === "block" ||
+        obj.type === "castle"
+      ) {
         if (this.checkAABBCollision(obj)) {
           this.resolveCollision(obj, axis, oldPos);
         }
@@ -141,7 +145,7 @@ class Player {
     }
 
     // Ground collision (only on Y axis)
-    if (axis === 'y') {
+    if (axis === "y") {
       let groundHeight = terrain.getHeightAt(this.pos.x, this.pos.z);
       let playerBottom = this.pos.y + this.height / 2;
 
@@ -155,14 +159,16 @@ class Player {
 
   checkAABBCollision(obj) {
     // Get object bounds
-    let objBounds = obj.getBounds ? obj.getBounds() : {
-      minX: obj.pos.x - obj.width / 2,
-      maxX: obj.pos.x + obj.width / 2,
-      minY: obj.pos.y - obj.height / 2,
-      maxY: obj.pos.y + obj.height / 2,
-      minZ: obj.pos.z - obj.depth / 2,
-      maxZ: obj.pos.z + obj.depth / 2
-    };
+    let objBounds = obj.getBounds
+      ? obj.getBounds()
+      : {
+          minX: obj.pos.x - obj.width / 2,
+          maxX: obj.pos.x + obj.width / 2,
+          minY: obj.pos.y - obj.height / 2,
+          maxY: obj.pos.y + obj.height / 2,
+          minZ: obj.pos.z - obj.depth / 2,
+          maxZ: obj.pos.z + obj.depth / 2,
+        };
 
     // Get player bounds
     let playerBounds = {
@@ -171,7 +177,7 @@ class Player {
       minY: this.pos.y - this.height / 2,
       maxY: this.pos.y + this.height / 2,
       minZ: this.pos.z - this.depth / 2,
-      maxZ: this.pos.z + this.depth / 2
+      maxZ: this.pos.z + this.depth / 2,
     };
 
     // Check overlap on all axes
@@ -186,16 +192,18 @@ class Player {
   }
 
   resolveCollision(obj, axis, oldPos) {
-    let objBounds = obj.getBounds ? obj.getBounds() : {
-      minX: obj.pos.x - obj.width / 2,
-      maxX: obj.pos.x + obj.width / 2,
-      minY: obj.pos.y - obj.height / 2,
-      maxY: obj.pos.y + obj.height / 2,
-      minZ: obj.pos.z - obj.depth / 2,
-      maxZ: obj.pos.z + obj.depth / 2
-    };
+    let objBounds = obj.getBounds
+      ? obj.getBounds()
+      : {
+          minX: obj.pos.x - obj.width / 2,
+          maxX: obj.pos.x + obj.width / 2,
+          minY: obj.pos.y - obj.height / 2,
+          maxY: obj.pos.y + obj.height / 2,
+          minZ: obj.pos.z - obj.depth / 2,
+          maxZ: obj.pos.z + obj.depth / 2,
+        };
 
-    if (axis === 'x') {
+    if (axis === "x") {
       // Colliding on X axis (left/right sides)
       if (this.vel.x > 0) {
         // Moving right, hit left side of object
@@ -205,7 +213,7 @@ class Player {
         this.pos.x = objBounds.maxX + this.width / 2;
       }
       this.vel.x = 0;
-    } else if (axis === 'y') {
+    } else if (axis === "y") {
       // Colliding on Y axis (top/bottom)
       if (this.vel.y > 0) {
         // Moving down, hit top of object (landing on it)
@@ -217,7 +225,7 @@ class Player {
         this.pos.y = objBounds.maxY + this.height / 2;
         this.vel.y = 0;
       }
-    } else if (axis === 'z') {
+    } else if (axis === "z") {
       // Colliding on Z axis (front/back sides)
       if (this.vel.z > 0) {
         // Moving forward, hit back side of object
@@ -399,7 +407,7 @@ class LevelObject {
       minY: this.pos.y - this.height / 2,
       maxY: this.pos.y + this.height / 2,
       minZ: this.pos.z - this.depth / 2,
-      maxZ: this.pos.z + this.depth / 2
+      maxZ: this.pos.z + this.depth / 2,
     };
   }
 
@@ -421,9 +429,9 @@ class Castle {
     this.x = x;
     this.z = z;
     this.pos = createVector(x, -100, z);
-    this.width = 200;  // Total width including side towers
+    this.width = 200; // Total width including side towers
     this.height = 200; // Main tower height
-    this.depth = 80;   // Main tower depth
+    this.depth = 80; // Main tower depth
   }
 
   getBounds() {
@@ -434,7 +442,7 @@ class Castle {
       minY: this.pos.y - this.height / 2,
       maxY: this.pos.y + this.height / 2,
       minZ: this.z - this.depth / 2,
-      maxZ: this.z + this.depth / 2
+      maxZ: this.z + this.depth / 2,
     };
   }
 
