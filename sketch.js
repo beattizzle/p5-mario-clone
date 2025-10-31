@@ -96,7 +96,8 @@ class Player {
       moveDir.normalize();
 
       // Rotate movement direction based on camera angle
-      let camAngle = gameCamera.angleH;
+      // Use negative angle because camera orbits around player
+      let camAngle = -gameCamera.angleH;
       let rotatedX = moveDir.x * cos(camAngle) - moveDir.z * sin(camAngle);
       let rotatedZ = moveDir.x * sin(camAngle) + moveDir.z * cos(camAngle);
 
