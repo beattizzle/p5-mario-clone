@@ -63,11 +63,14 @@ class Player {
     this.vel = createVector(0, 0, 0);
     this.acc = createVector(0, 0, 0);
     this.angle = 0;
-    this.speed = 0.5;
-    this.runSpeed = 1.0;
-    this.jumpForce = 6.7; // Increased jump height
+    this.speed = 4.0;
+    this.runSpeed = 9.0;
+    this.jumpForce = 9.6;
     this.isGrounded = false;
-    this.gravity = 0.15;
+    this.gravity = 1;
+    this.maxJumps = 3;
+    this.jumpsRemaining = 3;
+    this.spaceWasPressed = false;
   }
 
   update() {
@@ -76,7 +79,7 @@ class Player {
 
     // Movement relative to camera
     let moveDir = createVector(0, 0, 0);
-    let currentSpeed = keys["Shift"] ? this.runSpeed : this.speed;
+    let currentSpeed = keys["CapsLock"] ? this.runSpeed : this.speed;
 
     if (keys["w"] || keys["W"]) {
       moveDir.z -= 1;
@@ -115,11 +118,15 @@ class Player {
       this.vel.z *= 0.8;
     }
 
-    // Jumping
-    if (keys[" "] && this.isGrounded) {
+    // Jumping - double jump mechanic
+    if (keys[" "] && !this.spaceWasPressed && this.jumpsRemaining > 0) {
       this.vel.y = -this.jumpForce;
+      this.jumpsRemaining--;
       this.isGrounded = false;
     }
+
+    // Track space key state for next frame
+    this.spaceWasPressed = keys[" "];
 
     // Store old position for collision resolution
     let oldPos = this.pos.copy();
@@ -163,6 +170,7 @@ class Player {
         this.pos.y = groundHeight - this.height / 2;
         this.vel.y = 0;
         this.isGrounded = true;
+        this.jumpsRemaining = this.maxJumps; // Reset jumps on landing
       }
     }
   }
@@ -230,6 +238,7 @@ class Player {
         this.pos.y = objBounds.minY - this.height / 2;
         this.vel.y = 0;
         this.isGrounded = true;
+        this.jumpsRemaining = this.maxJumps; // Reset jumps on landing
       } else {
         // Moving up, hit bottom of object (head bonk)
         this.pos.y = objBounds.maxY + this.height / 2;
