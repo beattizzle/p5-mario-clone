@@ -49,6 +49,22 @@ function draw() {
 
   // Draw player
   player.display();
+
+  // Draw shift lock indicator
+  if (gameCamera.shiftLockEnabled) {
+    push();
+    // Reset transformations for 2D overlay
+    camera();
+    fill(255, 255, 255, 200);
+    stroke(0);
+    strokeWeight(2);
+    textSize(20);
+    textAlign(LEFT, TOP);
+    text("SHIFT LOCK: ON", -windowWidth / 2 + 20, -windowHeight / 2 + 20);
+    pop();
+    // Reapply game camera
+    gameCamera.apply();
+  }
 }
 
 // Player class
@@ -111,8 +127,10 @@ class Player {
       this.vel.x = moveDir.x;
       this.vel.z = moveDir.z;
 
-      // Update facing angle
-      this.angle = atan2(moveDir.x, moveDir.z);
+      // Update facing angle (only in normal mode, shift lock controls it)
+      if (!gameCamera.shiftLockEnabled) {
+        this.angle = atan2(moveDir.x, moveDir.z);
+      }
     } else {
       this.vel.x *= 0.8; // Friction
       this.vel.z *= 0.8;
@@ -306,21 +324,45 @@ class ThirdPersonCamera {
     this.angleV = -0.3;
     this.sensitivity = 0.005;
     this.pos = createVector(0, 0, 0);
+    this.shiftLockEnabled = false;
+    this.shiftWasPressed = false;
   }
 
   update() {
-    // Mouse look (when dragging)
-    if (mouseIsPressed) {
-      this.angleH -= movedX * this.sensitivity;
-      this.angleV -= movedY * this.sensitivity;
-      this.angleV = constrain(this.angleV, -PI / 3, -0.1);
+    // Toggle shift lock mode when Shift is pressed
+    if (keys["Shift"] && !this.shiftWasPressed) {
+      this.shiftLockEnabled = !this.shiftLockEnabled;
+    }
+    this.shiftWasPressed = keys["Shift"];
+
+    // Mouse look behavior depends on shift lock mode
+    if (this.shiftLockEnabled) {
+      // In shift lock mode, mouse always controls camera (no need to hold mouse button)
+      if (movedX !== 0 || movedY !== 0) {
+        this.angleH -= movedX * this.sensitivity;
+        this.angleV -= movedY * this.sensitivity;
+        this.angleV = constrain(this.angleV, -PI / 3, -0.1);
+      }
+
+      // Update player rotation to match camera direction
+      this.target.angle = this.angleH;
+    } else {
+      // Normal third-person mode - only move camera when mouse is pressed
+      if (mouseIsPressed) {
+        this.angleH -= movedX * this.sensitivity;
+        this.angleV -= movedY * this.sensitivity;
+        this.angleV = constrain(this.angleV, -PI / 3, -0.1);
+      }
     }
 
     // Calculate camera position
-    let camX = this.target.pos.x + sin(this.angleH) * this.distance;
-    let camZ = this.target.pos.z + cos(this.angleH) * this.distance;
+    let camDistance = this.shiftLockEnabled ? 50 : this.distance; // Closer in shift lock
+    let camHeight = this.shiftLockEnabled ? 10 : this.height; // Lower in shift lock
+
+    let camX = this.target.pos.x + sin(this.angleH) * camDistance;
+    let camZ = this.target.pos.z + cos(this.angleH) * camDistance;
     let camY =
-      this.target.pos.y + this.height + this.distance * sin(this.angleV);
+      this.target.pos.y + camHeight + camDistance * sin(this.angleV);
 
     this.pos.set(camX, camY, camZ);
   }
