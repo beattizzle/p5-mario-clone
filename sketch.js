@@ -65,7 +65,7 @@ class Player {
     this.angle = 0;
     this.speed = 0.5;
     this.runSpeed = 1.0;
-    this.jumpForce = 67.0; // Increased jump height
+    this.jumpForce = 6.7; // Increased jump height
     this.isGrounded = false;
     this.gravity = 0.15;
   }
