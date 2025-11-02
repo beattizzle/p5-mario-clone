@@ -571,6 +571,46 @@ function draw() {
   pop();
   // Reapply game camera
   gameCamera.apply();
+
+  // Player HP bar - ALWAYS ON TOP (drawn last as front layer)
+  push();
+  camera(); // Reset to 2D overlay mode
+
+  fill(255, 255, 255);
+  stroke(0);
+  strokeWeight(3);
+  textSize(32);
+  textAlign(CENTER, TOP);
+
+  let hpPercent = player.hp / player.maxHp;
+
+  // Color based on health
+  if (hpPercent > 0.5) {
+    fill(0, 255, 0); // Bright green when healthy
+  } else if (hpPercent > 0.25) {
+    fill(255, 255, 0); // Yellow when hurt
+  } else {
+    fill(255, 0, 0); // Red when critical
+  }
+
+  // Create visual HP bar with text characters
+  let maxBars = 20;
+  let currentBars = Math.ceil(maxBars * hpPercent);
+  let hpBarText = "";
+  for (let i = 0; i < currentBars; i++) {
+    hpBarText += "█";
+  }
+  for (let i = currentBars; i < maxBars; i++) {
+    hpBarText += "░";
+  }
+
+  text(`HP: ${Math.ceil(player.hp)}/${player.maxHp}`, 0, -windowHeight / 2 + 70);
+  text(hpBarText, 0, -windowHeight / 2 + 105);
+
+  // Reset text alignment
+  textAlign(LEFT, TOP);
+
+  pop();
 }
 
 // Player class
@@ -594,6 +634,9 @@ class Player {
     this.maxJumps = 3;
     this.jumpsRemaining = 3;
     this.spaceWasPressed = false;
+    // HP properties
+    this.hp = 60;
+    this.maxHp = 60;
     // Sword properties
     this.swordSwinging = false;
     this.swingProgress = 0;
@@ -842,17 +885,19 @@ class Player {
     translate(this.pos.x, this.pos.y, this.pos.z);
     rotateY(this.angle);
 
-    // GIGACHAD proportions - skin tone
-    let skinColor = color(210, 180, 140);
+    // Tang Dynasty character - Asian skin tone
+    let skinColor = color(245, 215, 180);
 
-    // Gold outfit colors when 30+ points
-    let shirtColor, pantsColor;
+    // Tang Dynasty red and gold embroidery robes
+    let robeColor, accentColor, pantColor;
     if (points >= 30) {
-      shirtColor = color(255, 215, 0); // Gold
-      pantsColor = color(218, 165, 32); // Golden rod
+      robeColor = color(220, 20, 60); // Crimson red (Tang Dynasty imperial red)
+      accentColor = color(255, 215, 0); // Gold embroidery
+      pantColor = color(180, 15, 50); // Dark red
     } else {
-      shirtColor = color(60, 60, 60); // Dark gray
-      pantsColor = color(40, 40, 40); // Darker gray
+      robeColor = color(200, 30, 60); // Red robe
+      accentColor = color(218, 165, 32); // Gold accents
+      pantColor = color(160, 20, 50); // Dark red pants
     }
 
     // Position reference - adjusted to stand on ground properly
@@ -874,11 +919,16 @@ class Player {
     box(this.size * 0.85, this.size * 0.6, this.size * 0.7);
     pop();
 
-    // Chad haircut - slicked back
+    // Traditional black hair - Tang Dynasty style
     push();
-    fill(40, 30, 20); // Dark hair
+    fill(10, 10, 10); // Black hair
     translate(0, -this.size * 0.45, -this.size * 0.1);
     box(this.size * 0.9, this.size * 0.35, this.size * 0.6);
+
+    // Hair ornament/decoration
+    fill(accentColor);
+    translate(0, -this.size * 0.1, 0);
+    box(this.size * 0.3, this.size * 0.1, this.size * 0.2);
     pop();
 
     // Eyes - intense stare
@@ -914,43 +964,93 @@ class Player {
     box(this.size * 0.6, this.size * 0.5, this.size * 0.5);
     pop();
 
-    // MASSIVE TRAPS
+    // BIG GOLD CHAIN NECKLACE
     push();
-    fill(shirtColor);
+    fill(255, 215, 0); // Gold color
+    stroke(200, 170, 0);
+    strokeWeight(1);
+
+    // Chain sits around the neck
+    let chainRadius = this.size * 0.5;
+    let numLinks = 12;
+
+    for (let i = 0; i < numLinks; i++) {
+      let angle = (i / numLinks) * TWO_PI;
+      let x = sin(angle) * chainRadius;
+      let y = this.size * 1.1 + cos(angle) * chainRadius * 0.3;
+      let z = cos(angle) * chainRadius;
+
+      push();
+      translate(x, y, z);
+      rotateY(angle);
+
+      // Chain link (thick torus-like shape)
+      box(this.size * 0.15, this.size * 0.2, this.size * 0.08);
+      pop();
+    }
+
+    // Big dollar sign pendant
+    push();
+    translate(0, this.size * 1.5, this.size * 0.4);
+    fill(255, 215, 0);
+    stroke(200, 170, 0);
+    strokeWeight(2);
+
+    // Pendant circle background
+    sphere(this.size * 0.3);
+
+    // Dollar sign on pendant
+    fill(0, 150, 0);
+    translate(0, 0, this.size * 0.3);
+    textSize(this.size * 0.5);
+    textAlign(CENTER, CENTER);
+    text("$", 0, 0);
+    pop();
+
+    pop();
+
+    // UPPER ROBE (shoulders area)
+    push();
+    fill(robeColor);
     translate(0, this.size * 1.2, 0);
     box(this.size * 1.4, this.size * 0.4, this.size * 0.6);
     pop();
 
-    // GIGANTIC SHOULDERS (left)
+    // ROBE SHOULDERS (left)
     push();
-    fill(shirtColor);
+    fill(robeColor);
     translate(-this.size * 0.9, this.size * 1.4, 0);
     box(this.size * 0.7, this.size * 0.6, this.size * 0.65);
     pop();
 
-    // GIGANTIC SHOULDERS (right)
+    // ROBE SHOULDERS (right)
     push();
-    fill(shirtColor);
+    fill(robeColor);
     translate(this.size * 0.9, this.size * 1.4, 0);
     box(this.size * 0.7, this.size * 0.6, this.size * 0.65);
     pop();
 
-    // MUSCULAR TORSO/CHEST
+    // ROBE BODY/CHEST
     push();
-    fill(shirtColor);
+    fill(robeColor);
     translate(0, this.size * 1.8, 0);
     box(this.size * 1.3, this.size * 1.2, this.size * 0.7);
     pop();
 
-    // ABS (vest detail)
+    // GOLD EMBROIDERY DETAIL
     push();
-    if (points >= 30) {
-      fill(218, 165, 32); // Darker gold for vest detail
-    } else {
-      fill(50, 50, 50);
-    }
+    fill(accentColor);
     translate(0, this.size * 2.0, this.size * 0.35);
     box(this.size * 0.9, this.size * 0.8, this.size * 0.02);
+
+    // Add decorative pattern
+    fill(accentColor);
+    for (let i = -0.3; i <= 0.3; i += 0.3) {
+      push();
+      translate(i * this.size, 0, 0.01);
+      box(this.size * 0.15, this.size * 0.15, this.size * 0.01);
+      pop();
+    }
     pop();
 
     // MASSIVE BICEPS (left arm)
@@ -981,16 +1081,16 @@ class Player {
     box(this.size * 0.4, this.size * 0.6, this.size * 0.4);
     pop();
 
-    // POWERFUL LEGS (left)
+    // ROBE LOWER GARMENT (left leg)
     push();
-    fill(pantsColor);
+    fill(pantColor);
     translate(-this.size * 0.35, this.size * 3.2, 0);
     box(this.size * 0.5, this.size * 1.0, this.size * 0.5);
     pop();
 
-    // POWERFUL LEGS (right)
+    // ROBE LOWER GARMENT (right leg)
     push();
-    fill(pantsColor);
+    fill(pantColor);
     translate(this.size * 0.35, this.size * 3.2, 0);
     box(this.size * 0.5, this.size * 1.0, this.size * 0.5);
     pop();
@@ -1252,56 +1352,472 @@ class Castle {
     this.x = x;
     this.z = z;
     this.pos = createVector(x, -100, z);
-    this.width = 200; // Total width including side towers
-    this.height = 200; // Main tower height
-    this.depth = 80; // Main tower depth
+    this.width = 500; // Larger, more imposing castle
+    this.height = 350;
+    this.depth = 400;
   }
 
   getBounds() {
-    // Return collision bounds for the castle base
+    // Return collision bounds for the castle outer walls
+    // This represents the perimeter walls that block entry
     return {
-      minX: this.x - this.width / 2,
-      maxX: this.x + this.width / 2,
+      minX: this.x - 220,
+      maxX: this.x + 220,
       minY: this.pos.y - this.height / 2,
-      maxY: this.pos.y + this.height / 2,
-      minZ: this.z - this.depth / 2,
-      maxZ: this.z + this.depth / 2,
+      maxY: this.pos.y + 20, // Only bottom portion blocks movement
+      minZ: this.z - 170,
+      maxZ: this.z + 170,
     };
+  }
+
+  isInsideWalls(x, z) {
+    // Check if a position is inside the castle walls (hollow interior)
+    let relX = x - this.x;
+    let relZ = z - this.z;
+
+    // Outside the outer perimeter
+    if (abs(relX) > 220 || abs(relZ) > 170) return false;
+
+    // Inside the inner courtyard (hollow area)
+    if (abs(relX) < 180 && abs(relZ) < 130) return false;
+
+    return true; // In the wall thickness
+  }
+
+  drawBattlement(x, y, z, width) {
+    // Draw individual battlement/crenellation
+    for (let i = 0; i < 5; i++) {
+      push();
+      let offset = (i - 2) * (width / 4.5);
+      translate(x + offset, y, z);
+      fill(220, 220, 220);
+      box(width / 6, 15, 15);
+      pop();
+    }
+  }
+
+  drawArrowSlit(x, y, z) {
+    push();
+    translate(x, y, z);
+    fill(40, 40, 40);
+    box(3, 20, 2);
+    pop();
+  }
+
+  drawWindow(x, y, z, size) {
+    push();
+    translate(x, y, z);
+    fill(100, 150, 200, 150);
+    box(size, size * 1.5, 2);
+    // Window frame
+    stroke(80, 60, 40);
+    strokeWeight(1);
+    noFill();
+    box(size + 2, size * 1.5 + 2, 2);
+    pop();
   }
 
   display() {
     push();
-    // Position castle so bottom sits on ground
-    translate(this.x, -100, this.z);
+    translate(this.x, 0, this.z);
+    let groundY = terrain.getHeightAt(this.x, this.z);
 
-    // Main tower
-    fill(200, 200, 200);
-    stroke(0);
-    translate(0, 0, 0);
-    box(80, 200, 80);
-
-    // Tower top
-    translate(0, -120, 0);
-    fill(180, 50, 50);
-    cone(50, 60);
-
-    // Side towers
+    // === MOAT (surrounding the castle) ===
     push();
-    translate(-80, 50, 0);
-    fill(200, 200, 200);
-    box(50, 100, 50);
-    translate(0, -70, 0);
-    fill(180, 50, 50);
-    cone(35, 40);
+    translate(0, groundY + 10, 0);
+    fill(40, 80, 120); // Dark water
+    noStroke();
+    // Outer moat ring
+    for (let angle = 0; angle < TWO_PI; angle += 0.2) {
+      push();
+      let radius = 260;
+      let x = sin(angle) * radius;
+      let z = cos(angle) * radius;
+      translate(x, 0, z);
+      box(60, 30, 60);
+      pop();
+    }
     pop();
 
+    // === STONE BRIDGE / DRAWBRIDGE ===
     push();
-    translate(80, 50, 0);
+    translate(0, groundY - 5, 200);
+    fill(120, 100, 80); // Stone/wood color
+    stroke(80, 60, 40);
+    strokeWeight(2);
+    box(60, 10, 100);
+
+    // Bridge support pillars
+    for (let i = -1; i <= 1; i++) {
+      push();
+      translate(i * 25, 10, 0);
+      fill(100, 90, 70);
+      box(8, 20, 8);
+      pop();
+    }
+
+    // Chains for drawbridge (decorative)
+    stroke(80, 80, 80);
+    strokeWeight(3);
+    line(-25, -10, 50, -25, -10, 150);
+    line(25, -10, 50, 25, -10, 150);
+    pop();
+
+    // === OUTER DEFENSIVE BARRIERS ===
+    // Stone bollards/barriers in front of gate
+    for (let i = -2; i <= 2; i++) {
+      if (i === 0) continue; // Leave center open for gate
+      push();
+      translate(i * 40, groundY - 15, 170);
+      fill(150, 140, 130);
+      stroke(100, 90, 80);
+      strokeWeight(1);
+      cylinder(8, 30);
+      // Top cap
+      translate(0, -18, 0);
+      fill(130, 120, 110);
+      sphere(10);
+      pop();
+    }
+
+    // === OUTER WALLS ===
+    // Front wall (with extra thickness and detail)
+    push();
+    translate(0, groundY - 60, 150);
     fill(200, 200, 200);
-    box(50, 100, 50);
-    translate(0, -70, 0);
-    fill(180, 50, 50);
-    cone(35, 40);
+    stroke(0);
+    strokeWeight(1);
+    box(400, 120, 25);
+
+    // Wall texture - stone blocks
+    stroke(180, 180, 180);
+    for (let y = 0; y < 6; y++) {
+      for (let x = 0; x < 20; x++) {
+        push();
+        translate(-190 + x * 20, -50 + y * 20, 13);
+        noFill();
+        strokeWeight(1);
+        box(19, 19, 1);
+        pop();
+      }
+    }
+
+    // Battlements on front wall
+    this.drawBattlement(0, groundY - 125, 150, 400);
+    pop();
+
+    // Back wall
+    push();
+    translate(0, groundY - 60, -150);
+    fill(200, 200, 200);
+    stroke(0);
+    strokeWeight(1);
+    box(400, 120, 25);
+
+    // Stone texture
+    stroke(180, 180, 180);
+    for (let y = 0; y < 6; y++) {
+      for (let x = 0; x < 20; x++) {
+        push();
+        translate(-190 + x * 20, -50 + y * 20, -13);
+        noFill();
+        strokeWeight(1);
+        box(19, 19, 1);
+        pop();
+      }
+    }
+    this.drawBattlement(0, groundY - 125, -150, 400);
+    pop();
+
+    // Left wall
+    push();
+    translate(-200, groundY - 60, 0);
+    fill(200, 200, 200);
+    stroke(0);
+    strokeWeight(1);
+    box(25, 120, 300);
+
+    // Stone texture
+    stroke(180, 180, 180);
+    for (let y = 0; y < 6; y++) {
+      for (let z = 0; z < 15; z++) {
+        push();
+        translate(-13, -50 + y * 20, -140 + z * 20);
+        noFill();
+        strokeWeight(1);
+        box(1, 19, 19);
+        pop();
+      }
+    }
+    this.drawBattlement(-200, groundY - 125, 0, 300);
+    pop();
+
+    // Right wall
+    push();
+    translate(200, groundY - 60, 0);
+    fill(200, 200, 200);
+    stroke(0);
+    strokeWeight(1);
+    box(25, 120, 300);
+
+    // Stone texture
+    stroke(180, 180, 180);
+    for (let y = 0; y < 6; y++) {
+      for (let z = 0; z < 15; z++) {
+        push();
+        translate(13, -50 + y * 20, -140 + z * 20);
+        noFill();
+        strokeWeight(1);
+        box(1, 19, 19);
+        pop();
+      }
+    }
+    this.drawBattlement(200, groundY - 125, 0, 300);
+    pop();
+
+    // === CORNER TOWERS (4 large round towers) ===
+    let towerPositions = [
+      { x: -190, z: -140 },
+      { x: 190, z: -140 },
+      { x: -190, z: 140 },
+      { x: 190, z: 140 },
+    ];
+
+    for (let pos of towerPositions) {
+      push();
+      translate(pos.x, groundY - 80, pos.z);
+
+      // Tower body
+      fill(190, 190, 190);
+      cylinder(30, 160);
+
+      // Arrow slits at different levels
+      for (let level = 0; level < 4; level++) {
+        let slitY = -60 + level * 40;
+        this.drawArrowSlit(30, slitY, 0);
+        this.drawArrowSlit(-30, slitY, 0);
+        this.drawArrowSlit(0, slitY, 30);
+        this.drawArrowSlit(0, slitY, -30);
+      }
+
+      // Tower top platform
+      translate(0, -90, 0);
+      fill(180, 180, 180);
+      cylinder(35, 10);
+
+      // Battlements on tower
+      for (let i = 0; i < 8; i++) {
+        let angle = (i / 8) * TWO_PI;
+        push();
+        translate(sin(angle) * 35, -10, cos(angle) * 35);
+        fill(200, 200, 200);
+        box(12, 18, 12);
+        pop();
+      }
+
+      // Conical roof
+      translate(0, -20, 0);
+      fill(150, 50, 50);
+      cone(40, 50, 8);
+
+      // Flag on top
+      translate(0, -45, 0);
+      fill(255, 0, 0);
+      box(2, 60, 2);
+      translate(0, -30, 8);
+      box(1, 15, 15);
+      pop();
+    }
+
+    // === GATEHOUSE (main entrance) ===
+    push();
+    translate(0, groundY - 70, 150);
+
+    // Gatehouse towers (left and right)
+    for (let side of [-1, 1]) {
+      push();
+      translate(side * 50, 0, 0);
+      fill(180, 180, 180);
+      box(40, 140, 40);
+
+      // Windows on gatehouse towers
+      for (let i = 0; i < 3; i++) {
+        this.drawWindow(0, -40 + i * 35, 21, 12);
+      }
+
+      // Gatehouse tower tops
+      translate(0, -80, 0);
+      fill(140, 40, 40);
+      cone(30, 40, 4);
+      pop();
+    }
+
+    // Gate arch
+    push();
+    translate(0, 20, 0);
+    fill(101, 67, 33);
+    box(50, 80, 25);
+
+    // Portcullis detail
+    fill(60, 60, 60);
+    for (let i = -20; i <= 20; i += 8) {
+      push();
+      translate(i, 0, 13);
+      box(3, 80, 1);
+      pop();
+    }
+    pop();
+
+    // Arch decoration
+    push();
+    translate(0, -35, 13);
+    fill(180, 160, 140);
+    box(60, 15, 3);
+    pop();
+
+    // Machicolations (murder holes) above the gate
+    push();
+    translate(0, -50, 0);
+    fill(170, 170, 170);
+    box(70, 20, 45);
+
+    // Murder holes openings
+    for (let i = -1; i <= 1; i++) {
+      push();
+      translate(i * 20, 10, 0);
+      fill(40, 40, 40);
+      box(12, 5, 12);
+      pop();
+    }
+    pop();
+    pop();
+
+    // === DEFENSIVE SPIKES (around outer perimeter) ===
+    // Wooden spikes/stakes in front of moat
+    for (let angle = 0; angle < TWO_PI; angle += 0.4) {
+      push();
+      let radius = 290;
+      let x = sin(angle) * radius;
+      let z = cos(angle) * radius;
+      translate(x, groundY - 15, z);
+
+      // Skip area in front of gate
+      if (z > 180 && abs(x) < 40) {
+        pop();
+        continue;
+      }
+
+      fill(101, 67, 33);
+      stroke(80, 50, 20);
+      strokeWeight(1);
+
+      // Angled defensive spike
+      push();
+      rotateZ(-PI / 6); // Angle outward
+      cylinder(4, 35);
+      translate(0, -20, 0);
+      fill(80, 50, 20);
+      cone(5, 10);
+      pop();
+      pop();
+    }
+
+    // === CENTRAL KEEP (tallest structure) ===
+    push();
+    translate(0, groundY - 140, -50);
+    fill(180, 180, 180);
+    stroke(0);
+    strokeWeight(1);
+    box(100, 280, 100);
+
+    // Keep windows at multiple levels
+    for (let level = 0; level < 6; level++) {
+      let winY = -100 + level * 40;
+      // Front windows
+      this.drawWindow(0, winY, 52, 15);
+      // Side windows
+      this.drawWindow(52, winY, 0, 15);
+      this.drawWindow(-52, winY, 0, 15);
+    }
+
+    // Keep battlements
+    translate(0, -150, 0);
+    for (let x = -4; x <= 4; x++) {
+      for (let z = -4; z <= 4; z++) {
+        if (abs(x) === 4 || abs(z) === 4) {
+          push();
+          translate(x * 12, 0, z * 12);
+          fill(200, 200, 200);
+          box(10, 20, 10);
+          pop();
+        }
+      }
+    }
+
+    // Keep roof
+    translate(0, -25, 0);
+    fill(120, 30, 30);
+    cone(70, 80, 4);
+
+    // Main flag
+    translate(0, -100, 0);
+    fill(255, 215, 0);
+    box(4, 80, 4);
+    translate(0, -40, 12);
+    fill(255, 0, 0);
+    box(2, 25, 25);
+    // Royal emblem
+    fill(255, 215, 0);
+    translate(0, 0, 1);
+    textSize(15);
+    textAlign(CENTER, CENTER);
+    text("⚔", 0, 0);
+    pop();
+
+    // === ADDITIONAL TURRETS ===
+    let turretPositions = [
+      { x: -100, z: 50 },
+      { x: 100, z: 50 },
+      { x: -100, z: -150 },
+      { x: 100, z: -150 },
+    ];
+
+    for (let pos of turretPositions) {
+      push();
+      translate(pos.x, groundY - 100, pos.z);
+      fill(190, 190, 190);
+      cylinder(20, 200);
+
+      // Turret windows
+      for (let i = 0; i < 4; i++) {
+        this.drawWindow(22, -70 + i * 40, 0, 10);
+      }
+
+      translate(0, -110, 0);
+      fill(140, 40, 40);
+      cone(25, 35, 6);
+      pop();
+    }
+
+    // === INNER COURTYARD DETAILS ===
+    // Well
+    push();
+    translate(50, groundY - 10, 0);
+    fill(120, 120, 120);
+    cylinder(15, 20);
+    translate(0, -15, 0);
+    fill(80, 80, 80);
+    cylinder(10, 5);
+    pop();
+
+    // Armory building
+    push();
+    translate(-80, groundY - 30, 20);
+    fill(160, 160, 160);
+    box(60, 60, 40);
+    translate(0, -35, 0);
+    fill(100, 40, 40);
+    box(65, 10, 45);
     pop();
 
     pop();
@@ -1482,6 +1998,51 @@ class Enemy {
   }
 }
 
+// Find the highest even terrain for castle placement
+function findHighestEvenTerrain() {
+  let bestPosition = { x: 0, z: 0, height: -Infinity, flatness: Infinity };
+  let searchRadius = 900; // Search within this radius
+  let sampleSize = 50; // Number of positions to sample
+  let checkRadius = 250; // Area needed for castle (must be flat within this radius)
+
+  for (let i = 0; i < sampleSize; i++) {
+    // Random position to test
+    let testX = random(-searchRadius, searchRadius);
+    let testZ = random(-searchRadius, searchRadius);
+
+    // Get height at this position
+    let centerHeight = terrain.getHeightAt(testX, testZ);
+
+    // Check flatness by sampling nearby points
+    let heightVariation = 0;
+    let samples = 8;
+
+    for (let angle = 0; angle < TWO_PI; angle += TWO_PI / samples) {
+      let sampleX = testX + cos(angle) * checkRadius;
+      let sampleZ = testZ + sin(angle) * checkRadius;
+      let sampleHeight = terrain.getHeightAt(sampleX, sampleZ);
+      heightVariation += abs(sampleHeight - centerHeight);
+    }
+
+    let avgVariation = heightVariation / samples;
+
+    // Prefer higher terrain with less variation (flatter)
+    // Weight: higher terrain is better, but must be reasonably flat
+    if (avgVariation < 30) { // Only consider if reasonably flat
+      if (centerHeight > bestPosition.height) {
+        bestPosition = {
+          x: testX,
+          z: testZ,
+          height: centerHeight,
+          flatness: avgVariation
+        };
+      }
+    }
+  }
+
+  return bestPosition;
+}
+
 // Create level elements
 function createLevel() {
   // Generate 30 random floating platforms
@@ -1548,8 +2109,10 @@ function createLevel() {
     )
   );
 
-  // Castle
-  levelObjects.push(new Castle(-500, -400));
+  // Castle - place on highest even terrain
+  let castleLocation = findHighestEvenTerrain();
+  console.log(`Castle placed at (${castleLocation.x.toFixed(0)}, ${castleLocation.z.toFixed(0)}) - Height: ${castleLocation.height.toFixed(1)}, Flatness: ${castleLocation.flatness.toFixed(1)}`);
+  levelObjects.push(new Castle(castleLocation.x, castleLocation.z));
 
   // Decorative blocks - question blocks style
   for (let i = 0; i < 20; i++) {
@@ -1577,9 +2140,22 @@ function createLevel() {
   }
 
   // Generate 15 enemy spawn positions (enemies only appear at night)
+  // Avoid spawning too close to the castle
   for (let i = 0; i < 15; i++) {
-    let x = random(-700, 700);
-    let z = random(-700, 700);
+    let x, z;
+    let validPosition = false;
+
+    // Keep trying until we find a position far enough from castle
+    while (!validPosition) {
+      x = random(-700, 700);
+      z = random(-700, 700);
+
+      // Check distance from castle
+      let distToCastle = dist(x, z, castleLocation.x, castleLocation.z);
+      if (distToCastle > 400) { // At least 400 units away from castle
+        validPosition = true;
+      }
+    }
 
     enemySpawnPositions.push({ x: x, z: z });
   }
