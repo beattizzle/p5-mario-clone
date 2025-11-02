@@ -28,24 +28,40 @@ class SoundFX {
     const ctx = audioContext;
     const now = ctx.currentTime;
 
-    // Create whoosh sound
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
+    // Create air whoosh using noise
+    const bufferSize = ctx.sampleRate * 0.3; // 0.3 seconds
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
 
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
+    // Generate white noise
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
 
-    // Descending whoosh
-    oscillator.frequency.setValueAtTime(600, now);
-    oscillator.frequency.exponentialRampToValueAtTime(200, now + 0.2);
+    const noiseSource = ctx.createBufferSource();
+    noiseSource.buffer = buffer;
 
-    // Swoosh envelope
-    gainNode.gain.setValueAtTime(0.15, now);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+    // Band-pass filter for whoosh effect
+    const filter = ctx.createBiquadFilter();
+    filter.type = "bandpass";
+    filter.frequency.setValueAtTime(800, now);
+    filter.frequency.exponentialRampToValueAtTime(300, now + 0.25);
+    filter.Q.value = 3;
 
-    oscillator.type = "sawtooth";
-    oscillator.start(now);
-    oscillator.stop(now + 0.2);
+    const whooshGain = ctx.createGain();
+
+    noiseSource.connect(filter);
+    filter.connect(whooshGain);
+    whooshGain.connect(ctx.destination);
+
+    // Envelope: quick attack, sustained whoosh, quick release
+    whooshGain.gain.setValueAtTime(0.01, now);
+    whooshGain.gain.exponentialRampToValueAtTime(0.25, now + 0.03);
+    whooshGain.gain.setValueAtTime(0.25, now + 0.15);
+    whooshGain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
+
+    noiseSource.start(now);
+    noiseSource.stop(now + 0.3);
   }
 
   playSwordHit() {
@@ -718,12 +734,17 @@ class Player {
     // Handle emote with E key
     if (keys["e"] === true || keys["E"] === true) {
       if (!this.eWasPressed) {
-        // Start flex emote
-        this.isEmoting = true;
-        this.emoteTimer = 0;
-
-        // Start speech synthesis - tenor voice saying "six seven"
-        this.startFlexSpeech();
+        if (this.isEmoting) {
+          // Cancel emote if already emoting
+          this.isEmoting = false;
+          this.emoteTimer = 0;
+          this.stopFlexSpeech();
+        } else {
+          // Start flex emote
+          this.isEmoting = true;
+          this.emoteTimer = 0;
+          this.startFlexSpeech();
+        }
       }
       this.eWasPressed = true;
     } else {
@@ -857,6 +878,13 @@ class Player {
 
   swingSword() {
     if (!this.swordSwinging) {
+      // Cancel emote if currently emoting
+      if (this.isEmoting) {
+        this.isEmoting = false;
+        this.emoteTimer = 0;
+        this.stopFlexSpeech();
+      }
+
       this.swordSwinging = true;
       this.swingProgress = 0;
       soundFX.playSwordSwing(); // Play swing sound
@@ -2202,67 +2230,314 @@ function findHighestEvenTerrain() {
 
 // Create level elements
 function createLevel() {
-  // Generate 30 random floating platforms
-  for (let i = 0; i < 30; i++) {
-    let x = random(-800, 800);
-    let z = random(-800, 800);
-    let y = random(-150, -30);
-    let size = random(60, 120);
+  // PARKOUR COURSE GENERATION
+  // Start near spawn and create a winding path toward the castle
+
+  // Starting platform (spawn area)
+  levelObjects.push(
+    new LevelObject(
+      "platform",
+      createVector(0, -20, 0),
+      { w: 120, h: 20, d: 120 },
+      color(160, 100, 50)
+    )
+  );
+
+  // DEFINE GOLDEN PLATFORM TARGET - both routes will converge here
+  const goldenPlatformX = random(-300, 300);
+  const goldenPlatformZ = random(-300, 300);
+  const goldenPlatformY = -1600; // High in the sky
+  const convergenceDistance = 7; // Last N platforms converge to golden platform (increased from 5)
+
+  // Generate parkour course path
+  let currentX = 0;
+  let currentZ = 0;
+  let currentY = -20;
+  let direction = 0; // Angle in radians
+  const boundaryLimit = 900; // Keep platforms within ±900 (100 units from walls)
+
+  // Create 40 parkour platforms in a winding path ASCENDING INTO THE SKY
+  for (let i = 0; i < 40; i++) {
+    // Distance between platforms (gaps get wider as we progress, but capped)
+    let gapDistance = random(80, 120) + i * 1; // Reduced from i * 2
+    gapDistance = constrain(gapDistance, 80, 145); // Cap maximum gap at 145 units
+
+    // CONVERGE TO GOLDEN PLATFORM in last few platforms
+    if (i >= 40 - convergenceDistance) {
+      // Calculate direction toward golden platform
+      let angleToGolden = atan2(goldenPlatformZ - currentZ, goldenPlatformX - currentX);
+      let distToGolden = dist(currentX, currentZ, goldenPlatformX, goldenPlatformZ);
+
+      // Move toward golden platform with safe gap limits
+      let maxSafeGap = 120; // Cap convergence gaps at 120 units
+      let moveDistance = min(maxSafeGap, distToGolden * 0.6); // Slower convergence (60% vs 80%)
+      direction = angleToGolden;
+      currentX += cos(direction) * moveDistance;
+      currentZ += sin(direction) * moveDistance;
+    } else {
+      // Normal pathfinding with boundary checking
+      let attempts = 0;
+      let validPosition = false;
+      let testX, testZ;
+
+      while (!validPosition && attempts < 20) {
+        // Vary direction to create winding path
+        let directionChange = random(-0.5, 0.5);
+        let testDirection = direction + directionChange;
+
+        // Calculate potential next position
+        testX = currentX + cos(testDirection) * gapDistance;
+        testZ = currentZ + sin(testDirection) * gapDistance;
+
+        // Check if position is within boundaries
+        if (abs(testX) < boundaryLimit && abs(testZ) < boundaryLimit) {
+          validPosition = true;
+          direction = testDirection;
+          currentX = testX;
+          currentZ = testZ;
+        } else {
+          // If outside boundaries, try to turn toward center
+          let angleToCenter = atan2(-currentZ, -currentX);
+          direction = angleToCenter + random(-0.3, 0.3);
+          attempts++;
+        }
+      }
+
+      // If still couldn't find valid position after attempts, force toward center
+      if (!validPosition) {
+        let angleToCenter = atan2(-currentZ, -currentX);
+        direction = angleToCenter;
+        let safeGap = min(gapDistance * 0.5, 100); // Cap fallback at 100 units
+        currentX += cos(direction) * safeGap;
+        currentZ += sin(direction) * safeGap;
+      }
+
+      // Constrain to boundaries just in case
+      currentX = constrain(currentX, -boundaryLimit, boundaryLimit);
+      currentZ = constrain(currentZ, -boundaryLimit, boundaryLimit);
+    }
+
+    // ASCEND INTO THE SKY - progressively climb higher
+    if (i >= 40 - convergenceDistance) {
+      // Converge height toward golden platform with gentler steps
+      let heightDiff = goldenPlatformY - currentY;
+      currentY += heightDiff * 0.5; // Gentler 50% convergence (was 70%)
+    } else if (i < 10) {
+      // Start easy - gentle climb with small variation
+      currentY += random(-25, -15); // Mostly going up
+    } else if (i < 25) {
+      // Medium - steeper climb
+      currentY += random(-40, -20); // Going up faster
+    } else {
+      // Hard - dramatic ascent to the clouds
+      currentY += random(-60, -35); // Steep climb
+    }
+
+    // No upper limit - let it go as high as it wants!
+    currentY = constrain(currentY, -2000, -20); // Can go up to 2000 units high!
+
+    // Platform size varies (smaller = harder)
+    let platformSize;
+    if (i < 10) {
+      platformSize = random(70, 100); // Large platforms
+    } else if (i < 25) {
+      platformSize = random(50, 80); // Medium platforms
+    } else {
+      platformSize = random(40, 70); // Small platforms
+    }
+
+    // Platform color based on difficulty
+    let platformColor;
+    if (i < 10) {
+      platformColor = color(150, 100, 50); // Brown - easy
+    } else if (i < 25) {
+      platformColor = color(120, 140, 60); // Green - medium
+    } else {
+      platformColor = color(100, 100, 140); // Blue - hard
+    }
 
     levelObjects.push(
       new LevelObject(
         "platform",
-        createVector(x, y, z),
-        { w: size, h: 20, d: size },
-        color(random(120, 180), random(80, 120), random(40, 60))
+        createVector(currentX, currentY, currentZ),
+        { w: platformSize, h: 20, d: platformSize },
+        platformColor
+      )
+    );
+
+    // Add floating blocks above some platforms (every 3rd platform)
+    if (i % 3 === 0) {
+      levelObjects.push(
+        new LevelObject(
+          "block",
+          createVector(currentX, currentY - 60, currentZ),
+          { w: 40, h: 40, d: 40 },
+          color(255, random(180, 220), 0)
+        )
+      );
+    }
+
+    // Add stepping stone blocks between platforms (every 5th)
+    if (i > 5 && i % 5 === 0 && i < 35) {
+      let midX = currentX - cos(direction) * gapDistance * 0.5;
+      let midZ = currentZ - sin(direction) * gapDistance * 0.5;
+      let midY = currentY + random(-20, 20);
+
+      levelObjects.push(
+        new LevelObject(
+          "block",
+          createVector(midX, midY, midZ),
+          { w: 45, h: 45, d: 45 },
+          color(random(180, 220), random(160, 200), random(140, 180))
+        )
+      );
+    }
+  }
+
+  // HARD MODE EXPRESS PATH - 18 platforms creating a faster but harder route to the top
+  // Start from a different location than main path
+  let expressX = random(-400, -200); // Start on left side
+  let expressZ = random(-400, -200);
+  let expressY = -20;
+  let expressDirection = random(TWO_PI);
+
+  for (let i = 0; i < 18; i++) {
+    // Challenging gaps but not impossible - reduced from original
+    let expressGap = random(100, 140) + i * 1.2; // Max ~161 units, slower progression
+
+    // CONVERGE TO GOLDEN PLATFORM in last 5 platforms (more gradual)
+    const expressConvergeDist = 5;
+    if (i >= 18 - expressConvergeDist) {
+      // Calculate direction toward golden platform
+      let angleToGolden = atan2(goldenPlatformZ - expressZ, goldenPlatformX - expressX);
+      let distToGolden = dist(expressX, expressZ, goldenPlatformX, goldenPlatformZ);
+
+      // Move toward golden platform with safe gap limits
+      let maxSafeGap = 130; // Cap convergence gaps at 130 units
+      let moveDistance = min(maxSafeGap, distToGolden * 0.6); // Slower convergence (60% vs 80%)
+      expressDirection = angleToGolden;
+      expressX += cos(expressDirection) * moveDistance;
+      expressZ += sin(expressDirection) * moveDistance;
+    } else {
+      // Normal pathfinding with boundary checking
+      let attempts = 0;
+      let validPosition = false;
+      let testX, testZ;
+
+      while (!validPosition && attempts < 20) {
+        let directionChange = random(-0.6, 0.6);
+        let testDirection = expressDirection + directionChange;
+
+        testX = expressX + cos(testDirection) * expressGap;
+        testZ = expressZ + sin(testDirection) * expressGap;
+
+        if (abs(testX) < boundaryLimit && abs(testZ) < boundaryLimit) {
+          validPosition = true;
+          expressDirection = testDirection;
+          expressX = testX;
+          expressZ = testZ;
+        } else {
+          let angleToCenter = atan2(-expressZ, -expressX);
+          expressDirection = angleToCenter + random(-0.4, 0.4);
+          attempts++;
+        }
+      }
+
+      if (!validPosition) {
+        let angleToCenter = atan2(-expressZ, -expressX);
+        expressDirection = angleToCenter;
+        expressX += cos(expressDirection) * expressGap * 0.5;
+        expressZ += sin(expressDirection) * expressGap * 0.5;
+      }
+
+      expressX = constrain(expressX, -boundaryLimit, boundaryLimit);
+      expressZ = constrain(expressZ, -boundaryLimit, boundaryLimit);
+    }
+
+    // MUCH STEEPER climb - reaches top in 18 platforms instead of 40
+    if (i >= 18 - expressConvergeDist) {
+      // Converge height toward golden platform with gentler steps
+      let heightDiff = goldenPlatformY - expressY;
+      expressY += heightDiff * 0.5; // Gentler 50% convergence
+    } else {
+      // Target: reach ~1500 height in 18 platforms = ~83 units per platform
+      expressY += random(-95, -75); // More reasonable climb rate
+    }
+
+    expressY = constrain(expressY, -2000, -20);
+
+    // Slightly larger platforms for more forgiving jumps
+    let expressSize;
+    if (i < 6) {
+      expressSize = random(60, 75); // Start medium
+    } else if (i < 12) {
+      expressSize = random(50, 65); // Medium-small
+    } else {
+      expressSize = random(45, 60); // Small but doable
+    }
+
+    levelObjects.push(
+      new LevelObject(
+        "platform",
+        createVector(expressX, expressY, expressZ),
+        { w: expressSize, h: 20, d: expressSize },
+        color(200, 50, 50) // Red - express/hard mode platforms
+      )
+    );
+
+    // Add warning markers above some express platforms to show the path
+    if (i % 4 === 0) {
+      levelObjects.push(
+        new LevelObject(
+          "block",
+          createVector(expressX, expressY - 70, expressZ),
+          { w: 30, h: 30, d: 30 },
+          color(255, 100, 100) // Light red markers
+        )
+      );
+    }
+  }
+
+  // CREATE GOLDEN VICTORY PLATFORM - where both paths converge
+  levelObjects.push(
+    new LevelObject(
+      "platform",
+      createVector(goldenPlatformX, goldenPlatformY, goldenPlatformZ),
+      { w: 150, h: 30, d: 150 }, // Large platform
+      color(255, 215, 0) // Bright gold color
+    )
+  );
+
+  // Add decorative golden pillars around the victory platform
+  const pillarPositions = [
+    [-60, 0, -60],
+    [60, 0, -60],
+    [-60, 0, 60],
+    [60, 0, 60]
+  ];
+
+  for (let pillarPos of pillarPositions) {
+    levelObjects.push(
+      new LevelObject(
+        "block",
+        createVector(
+          goldenPlatformX + pillarPos[0],
+          goldenPlatformY - 80,
+          goldenPlatformZ + pillarPos[2]
+        ),
+        { w: 20, h: 100, d: 20 },
+        color(255, 220, 50) // Lighter gold
       )
     );
   }
 
-  // Add some specific platforms near spawn
+  // Add central victory marker - a tall golden obelisk
   levelObjects.push(
     new LevelObject(
-      "platform",
-      createVector(100, -40, 100),
-      { w: 80, h: 20, d: 80 },
-      color(150, 100, 50)
-    )
-  );
-
-  levelObjects.push(
-    new LevelObject(
-      "platform",
-      createVector(200, -80, 200),
-      { w: 90, h: 20, d: 90 },
-      color(150, 100, 50)
-    )
-  );
-
-  levelObjects.push(
-    new LevelObject(
-      "platform",
-      createVector(300, -120, 300),
-      { w: 100, h: 20, d: 100 },
-      color(150, 100, 50)
-    )
-  );
-
-  // Bridge platforms
-  levelObjects.push(
-    new LevelObject(
-      "platform",
-      createVector(-200, -30, -150),
-      { w: 150, h: 15, d: 60 },
-      color(139, 90, 43)
-    )
-  );
-
-  levelObjects.push(
-    new LevelObject(
-      "platform",
-      createVector(-350, -50, -200),
-      { w: 120, h: 15, d: 60 },
-      color(139, 90, 43)
+      "block",
+      createVector(goldenPlatformX, goldenPlatformY - 100, goldenPlatformZ),
+      { w: 30, h: 150, d: 30 },
+      color(255, 200, 0) // Bright golden marker
     )
   );
 
@@ -2279,22 +2554,6 @@ function createLevel() {
   );
   levelObjects.push(new Castle(castleLocation.x, castleLocation.z));
 
-  // Decorative blocks - question blocks style
-  for (let i = 0; i < 20; i++) {
-    let x = random(-600, 600);
-    let z = random(-600, 600);
-    let y = random(-80, -10);
-
-    levelObjects.push(
-      new LevelObject(
-        "block",
-        createVector(x, y, z),
-        { w: 40, h: 40, d: 40 },
-        color(255, random(180, 220), 0)
-      )
-    );
-  }
-
   // Generate 50 random bushes
   for (let i = 0; i < 50; i++) {
     let x = random(-900, 900);
@@ -2303,6 +2562,53 @@ function createLevel() {
 
     levelObjects.push(new Bush(x, z, size));
   }
+
+  // CREATE PERIMETER BARRIER WALLS - infinite height walls around terrain
+  const terrainBoundary = 1000; // Terrain extends from -1000 to +1000
+  const wallThickness = 50;
+  const wallHeight = 3200; // Very tall walls extending into the sky
+  const wallBottom = 100; // Extend walls down below terrain level to cover dips
+  const skyColor = color(135, 206, 235); // Daytime sky color
+
+  // North wall (at z = -1000)
+  levelObjects.push(
+    new LevelObject(
+      "platform",
+      createVector(0, -wallHeight / 2 + wallBottom, -terrainBoundary),
+      { w: terrainBoundary * 2 + wallThickness * 2, h: wallHeight, d: wallThickness },
+      skyColor
+    )
+  );
+
+  // South wall (at z = +1000)
+  levelObjects.push(
+    new LevelObject(
+      "platform",
+      createVector(0, -wallHeight / 2 + wallBottom, terrainBoundary),
+      { w: terrainBoundary * 2 + wallThickness * 2, h: wallHeight, d: wallThickness },
+      skyColor
+    )
+  );
+
+  // West wall (at x = -1000)
+  levelObjects.push(
+    new LevelObject(
+      "platform",
+      createVector(-terrainBoundary, -wallHeight / 2 + wallBottom, 0),
+      { w: wallThickness, h: wallHeight, d: terrainBoundary * 2 },
+      skyColor
+    )
+  );
+
+  // East wall (at x = +1000)
+  levelObjects.push(
+    new LevelObject(
+      "platform",
+      createVector(terrainBoundary, -wallHeight / 2 + wallBottom, 0),
+      { w: wallThickness, h: wallHeight, d: terrainBoundary * 2 },
+      skyColor
+    )
+  );
 
   // Generate 15 enemy spawn positions (enemies only appear at night)
   // Avoid spawning too close to the castle
