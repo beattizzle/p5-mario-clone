@@ -151,7 +151,7 @@ class BackgroundMusic {
     }
 
     // Start with appropriate music based on time
-    this.switchMusic(isNightTime(timeOfDay) ? 'night' : 'day');
+    this.switchMusic(isNightTime(timeOfDay) ? "night" : "day");
   }
 
   switchMusic(mode) {
@@ -164,7 +164,7 @@ class BackgroundMusic {
       clearTimeout(this.loopTimeout);
     }
 
-    if (mode === 'night') {
+    if (mode === "night") {
       this.playNightMusic();
     } else {
       this.playDayMusic();
@@ -176,8 +176,14 @@ class BackgroundMusic {
 
     // Melody notes (C major scale) - frequencies
     const notes = {
-      C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23,
-      G4: 392.00, A4: 440.00, B4: 493.88, C5: 523.25
+      C4: 261.63,
+      D4: 293.66,
+      E4: 329.63,
+      F4: 349.23,
+      G4: 392.0,
+      A4: 440.0,
+      B4: 493.88,
+      C5: 523.25,
     };
 
     // Simple pleasant melody pattern
@@ -197,7 +203,7 @@ class BackgroundMusic {
       { note: notes.F4, duration: 0.5 },
       { note: notes.D4, duration: 0.5 },
       { note: notes.E4, duration: 0.5 },
-      { note: notes.C4, duration: 0.5 }
+      { note: notes.C4, duration: 0.5 },
     ];
 
     // Bass line (harmony)
@@ -205,7 +211,7 @@ class BackgroundMusic {
       { note: notes.C4 * 0.5, duration: 2 },
       { note: notes.F4 * 0.5, duration: 2 },
       { note: notes.G4 * 0.5, duration: 2 },
-      { note: notes.C4 * 0.5, duration: 2 }
+      { note: notes.C4 * 0.5, duration: 2 },
     ];
 
     this.playMelodyLoop(melody, bass, 8, "sine", "triangle");
@@ -216,9 +222,16 @@ class BackgroundMusic {
 
     // Spooky minor scale notes - A minor
     const notes = {
-      A3: 220.00, B3: 246.94, C4: 261.63, D4: 293.66,
-      E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00,
-      Bb3: 233.08, Eb4: 311.13
+      A3: 220.0,
+      B3: 246.94,
+      C4: 261.63,
+      D4: 293.66,
+      E4: 329.63,
+      F4: 349.23,
+      G4: 392.0,
+      A4: 440.0,
+      Bb3: 233.08,
+      Eb4: 311.13,
     };
 
     // Eerie, slow melody pattern (minor key, dissonant)
@@ -234,7 +247,7 @@ class BackgroundMusic {
       { note: notes.Bb3, duration: 0.75 },
       { note: notes.C4, duration: 0.75 },
       { note: notes.D4, duration: 0.5 },
-      { note: notes.A3, duration: 1.0 }
+      { note: notes.A3, duration: 1.0 },
     ];
 
     // Deep, ominous bass drone
@@ -242,7 +255,7 @@ class BackgroundMusic {
       { note: notes.A3 * 0.5, duration: 3 },
       { note: notes.E4 * 0.5, duration: 3 },
       { note: notes.F4 * 0.5, duration: 3 },
-      { note: notes.A3 * 0.5, duration: 3 }
+      { note: notes.A3 * 0.5, duration: 3 },
     ];
 
     this.playMelodyLoop(melody, bass, 12, "sawtooth", "sine");
@@ -252,8 +265,11 @@ class BackgroundMusic {
     const ctx = audioContext;
 
     const playLoop = () => {
-      if (!this.isPlaying || (this.currentMode === 'day' && isNightTime(timeOfDay)) ||
-          (this.currentMode === 'night' && !isNightTime(timeOfDay))) {
+      if (
+        !this.isPlaying ||
+        (this.currentMode === "day" && isNightTime(timeOfDay)) ||
+        (this.currentMode === "night" && !isNightTime(timeOfDay))
+      ) {
         // Mode changed, don't continue this loop
         return;
       }
@@ -340,13 +356,19 @@ function getSkyColor(time) {
   let dayProgress = Math.abs(time - 0.5) * 2; // 0 at noon, 1 at midnight
 
   // Day colors (light blue)
-  let dayR = 135, dayG = 206, dayB = 235;
+  let dayR = 135,
+    dayG = 206,
+    dayB = 235;
 
   // Night colors (dark blue)
-  let nightR = 10, nightG = 10, nightB = 40;
+  let nightR = 10,
+    nightG = 10,
+    nightB = 40;
 
   // Sunset/sunrise colors (orange/pink)
-  let sunsetR = 255, sunsetG = 150, sunsetB = 100;
+  let sunsetR = 255,
+    sunsetG = 150,
+    sunsetB = 100;
 
   // Determine if we're in transition (sunrise/sunset)
   let isTransition = (time > 0.2 && time < 0.3) || (time > 0.7 && time < 0.8);
@@ -357,13 +379,13 @@ function getSkyColor(time) {
     return {
       r: lerp(lerp(dayR, nightR, dayProgress), sunsetR, transitionAmount),
       g: lerp(lerp(dayG, nightG, dayProgress), sunsetG, transitionAmount),
-      b: lerp(lerp(dayB, nightB, dayProgress), sunsetB, transitionAmount)
+      b: lerp(lerp(dayB, nightB, dayProgress), sunsetB, transitionAmount),
     };
   } else {
     return {
       r: lerp(dayR, nightR, dayProgress),
       g: lerp(dayG, nightG, dayProgress),
-      b: lerp(dayB, nightB, dayProgress)
+      b: lerp(dayB, nightB, dayProgress),
     };
   }
 }
@@ -463,7 +485,7 @@ function draw() {
 
   // Switch music based on time of day
   if (bgMusic && bgMusic.isPlaying) {
-    bgMusic.switchMusic(isNightTime(timeOfDay) ? 'night' : 'day');
+    bgMusic.switchMusic(isNightTime(timeOfDay) ? "night" : "day");
   }
 
   // Get sky color for current time
@@ -480,7 +502,14 @@ function draw() {
   // Dynamic lighting based on time of day
   let lightIntensity = getLightIntensity(timeOfDay);
   ambientLight(lightIntensity * 0.4);
-  directionalLight(lightIntensity, lightIntensity, lightIntensity, 0.5, 1, -0.5);
+  directionalLight(
+    lightIntensity,
+    lightIntensity,
+    lightIntensity,
+    0.5,
+    1,
+    -0.5
+  );
 
   // Draw sun/moon
   drawCelestialBody();
@@ -539,15 +568,27 @@ function draw() {
   // Time of day indicator
   let timePercent = (timeOfDay * 24).toFixed(1);
   let timeLabel = timeOfDay > 0.25 && timeOfDay < 0.75 ? "Day" : "Night";
-  text(`Time: ${timePercent}:00 (${timeLabel})`, -windowWidth / 2 + 20, -windowHeight / 2 + 50);
+  text(
+    `Time: ${timePercent}:00 (${timeLabel})`,
+    -windowWidth / 2 + 20,
+    -windowHeight / 2 + 50
+  );
 
   // Enemy warning during nighttime
   if (isNightTime(timeOfDay)) {
     fill(255, 50, 50, 200); // Red warning color
-    text(`⚠ ENEMY HOURS - ${enemies.length} enemies active`, -windowWidth / 2 + 20, -windowHeight / 2 + 80);
+    text(
+      `⚠ ENEMY HOURS - ${enemies.length} enemies active`,
+      -windowWidth / 2 + 20,
+      -windowHeight / 2 + 80
+    );
   } else {
     fill(100, 255, 100, 200); // Green safe color
-    text(`✓ Safe - Enemies only appear at night`, -windowWidth / 2 + 20, -windowHeight / 2 + 80);
+    text(
+      `✓ Safe - Enemies only appear at night`,
+      -windowWidth / 2 + 20,
+      -windowHeight / 2 + 80
+    );
   }
 
   // Points counter
@@ -565,7 +606,11 @@ function draw() {
   // Gold outfit achievement
   if (points >= 30) {
     fill(255, 215, 0, 255);
-    text("★ GOLD GIGACHAD UNLOCKED ★", -windowWidth / 2 + 20, -windowHeight / 2 + 140);
+    text(
+      "★ GOLD GIGACHAD UNLOCKED ★",
+      -windowWidth / 2 + 20,
+      -windowHeight / 2 + 140
+    );
   }
 
   pop();
@@ -604,8 +649,22 @@ function draw() {
     hpBarText += "░";
   }
 
-  text(`HP: ${Math.ceil(player.hp)}/${player.maxHp}`, 0, -windowHeight / 2 + 70);
+  text(
+    `HP: ${Math.ceil(player.hp)}/${player.maxHp}`,
+    0,
+    -windowHeight / 2 + 70
+  );
   text(hpBarText, 0, -windowHeight / 2 + 105);
+
+  // Flex emote indicator
+  if (player.isEmoting) {
+    fill(255, 215, 0); // Gold color
+    stroke(0);
+    strokeWeight(3);
+    textSize(48);
+    textAlign(CENTER, TOP);
+    text("💪 FLEX 💪", 0, -windowHeight / 2 + 150);
+  }
 
   // Reset text alignment
   textAlign(LEFT, TOP);
@@ -618,7 +677,7 @@ class Player {
   constructor() {
     this.size = 20;
     this.width = 12; // Player bounding box width (X)
-    this.height = 40; // Player bounding box height (Y)
+    this.height = 85; // Player bounding box height (Y) - includes head to feet
     this.depth = 12; // Player bounding box depth (Z)
     // Start high above ground so player falls naturally
     this.pos = createVector(0, -100, 0);
@@ -643,35 +702,78 @@ class Player {
     this.swingSpeed = 0.15;
     this.swordDamage = 50;
     this.swordReach = 30;
+    // Emote properties
+    this.isEmoting = false;
+    this.emoteTimer = 0;
+    this.emoteDuration = 3.0; // 3 seconds - extended flex show!
+    this.eWasPressed = false;
+    this.speechSynth = window.speechSynthesis;
+    this.speechInterval = null;
   }
 
   update() {
     // Store previous grounded state
     this.wasGrounded = this.isGrounded;
 
+    // Handle emote with E key
+    if (keys["e"] === true || keys["E"] === true) {
+      if (!this.eWasPressed) {
+        // Start flex emote
+        this.isEmoting = true;
+        this.emoteTimer = 0;
+
+        // Start speech synthesis - tenor voice saying "six seven"
+        this.startFlexSpeech();
+      }
+      this.eWasPressed = true;
+    } else {
+      this.eWasPressed = false;
+    }
+
+    // Update emote timer
+    if (this.isEmoting) {
+      this.emoteTimer += 1 / 60; // Assuming 60 FPS
+      if (this.emoteTimer >= this.emoteDuration) {
+        this.isEmoting = false;
+        this.emoteTimer = 0;
+        // Stop speech when emote ends
+        this.stopFlexSpeech();
+      }
+    }
+
     // Apply gravity
     this.vel.y += this.gravity;
 
-    // Movement relative to camera
-    let moveDir = createVector(0, 0, 0);
-    let currentSpeed = keys["CapsLock"] ? this.runSpeed : this.speed;
+    // Check if mouse is within canvas bounds
+    let mouseOnScreen = mouseX >= 0 && mouseX <= windowWidth && mouseY >= 0 && mouseY <= windowHeight;
 
-    // Check for actual key presses (ensure they're boolean true, not undefined)
-    if (keys["w"] === true || keys["W"] === true) {
-      moveDir.z -= 1;
-    }
-    if (keys["s"] === true || keys["S"] === true) {
-      moveDir.z += 1;
-    }
-    if (keys["a"] === true || keys["A"] === true) {
-      moveDir.x -= 1;
-    }
-    if (keys["d"] === true || keys["D"] === true) {
-      moveDir.x += 1;
+    // Movement relative to camera (only if mouse is on screen)
+    let moveDir = createVector(0, 0, 0);
+    let currentSpeed = (mouseIsPressed && mouseButton === RIGHT) ? this.runSpeed : this.speed;
+
+    // If mouse is offscreen, stop horizontal movement immediately
+    if (!mouseOnScreen) {
+      this.vel.x = 0;
+      this.vel.z = 0;
+    } else {
+      // Check for actual key presses (ensure they're boolean true, not undefined)
+      // Only accept movement input if mouse is on screen
+      if (keys["w"] === true || keys["W"] === true) {
+        moveDir.z -= 1;
+      }
+      if (keys["s"] === true || keys["S"] === true) {
+        moveDir.z += 1;
+      }
+      if (keys["a"] === true || keys["A"] === true) {
+        moveDir.x -= 1;
+      }
+      if (keys["d"] === true || keys["D"] === true) {
+        moveDir.x += 1;
+      }
     }
 
     // Normalize and apply speed
-    if (moveDir.mag() > 0) {
+    if (moveDir.mag() > 0 && mouseOnScreen) {
       moveDir.normalize();
 
       // Rotate movement direction based on camera angle
@@ -746,7 +848,9 @@ class Player {
         enemy.takeDamage(this.swordDamage);
         enemy.justHit = true;
         soundFX.playSwordHit(); // Play hit sound
-        setTimeout(() => { enemy.justHit = false; }, 500); // Prevent multi-hit in same swing
+        setTimeout(() => {
+          enemy.justHit = false;
+        }, 500); // Prevent multi-hit in same swing
       }
     }
   }
@@ -777,10 +881,10 @@ class Player {
     // Ground collision (only on Y axis)
     if (axis === "y") {
       let groundHeight = terrain.getHeightAt(this.pos.x, this.pos.z);
-      let playerBottom = this.pos.y + this.height / 2;
+      let playerBottom = this.pos.y + 20; // Feet are at pos.y + 20
 
       if (playerBottom >= groundHeight && this.vel.y >= 0) {
-        this.pos.y = groundHeight - this.height / 2;
+        this.pos.y = groundHeight - 20;
         this.vel.y = 0;
         this.isGrounded = true;
         this.jumpsRemaining = this.maxJumps; // Reset jumps on landing
@@ -806,12 +910,13 @@ class Player {
           maxZ: obj.pos.z + obj.depth / 2,
         };
 
-    // Get player bounds
+    // Get player bounds - adjusted to match actual character model
+    // Character model extends from head (top) to feet (bottom)
     let playerBounds = {
       minX: this.pos.x - this.width / 2,
       maxX: this.pos.x + this.width / 2,
-      minY: this.pos.y - this.height / 2,
-      maxY: this.pos.y + this.height / 2,
+      minY: this.pos.y - 63, // Top of head (hair)
+      maxY: this.pos.y + 20, // Bottom of feet
       minZ: this.pos.z - this.depth / 2,
       maxZ: this.pos.z + this.depth / 2,
     };
@@ -853,7 +958,8 @@ class Player {
       // Colliding on Y axis (top/bottom)
       if (this.vel.y > 0) {
         // Moving down, hit top of object (landing on it)
-        this.pos.y = objBounds.minY - this.height / 2;
+        // Player feet are at pos.y + 20
+        this.pos.y = objBounds.minY - 20;
         this.vel.y = 0;
         this.isGrounded = true;
         this.jumpsRemaining = this.maxJumps; // Reset jumps on landing
@@ -864,7 +970,8 @@ class Player {
         }
       } else {
         // Moving up, hit bottom of object (head bonk)
-        this.pos.y = objBounds.maxY + this.height / 2;
+        // Player head top is at pos.y - 63
+        this.pos.y = objBounds.maxY + 63;
         this.vel.y = 0;
       }
     } else if (axis === "z") {
@@ -989,24 +1096,6 @@ class Player {
       pop();
     }
 
-    // Big dollar sign pendant
-    push();
-    translate(0, this.size * 1.5, this.size * 0.4);
-    fill(255, 215, 0);
-    stroke(200, 170, 0);
-    strokeWeight(2);
-
-    // Pendant circle background
-    sphere(this.size * 0.3);
-
-    // Dollar sign on pendant
-    fill(0, 150, 0);
-    translate(0, 0, this.size * 0.3);
-    textSize(this.size * 0.5);
-    textAlign(CENTER, CENTER);
-    text("$", 0, 0);
-    pop();
-
     pop();
 
     // UPPER ROBE (shoulders area)
@@ -1053,31 +1142,58 @@ class Player {
     }
     pop();
 
+    // Calculate arm positions based on emote state
+    let leftArmY = this.size * 2.0;
+    let rightArmY = this.size * 2.0;
+    let leftForearmY = this.size * 2.8;
+    let rightForearmY = this.size * 2.8;
+    let leftArmZ = 0;
+    let rightArmZ = 0;
+
+    // FLEX EMOTE - Raise arms to show muscles (alternating)
+    if (this.isEmoting) {
+      let flexProgress = this.emoteTimer / this.emoteDuration;
+
+      // Left arm and right arm alternate - offset by PI for opposite motion
+      let leftFlexAmount = sin(flexProgress * PI * 12) * 0.25 + 0.75; // Oscillate 0.5-1 (stay raised, 3x faster)
+      let rightFlexAmount = sin(flexProgress * PI * 12 + PI) * 0.25 + 0.75; // Opposite phase
+
+      // Raise arms up and out to the sides (alternating)
+      leftArmY = this.size * (2.0 - 0.8 * leftFlexAmount);
+      rightArmY = this.size * (2.0 - 0.8 * rightFlexAmount);
+      leftForearmY = this.size * (2.8 - 1.2 * leftFlexAmount);
+      rightForearmY = this.size * (2.8 - 1.2 * rightFlexAmount);
+
+      // Move arms slightly outward and forward (alternating)
+      leftArmZ = this.size * 0.3 * leftFlexAmount;
+      rightArmZ = this.size * 0.3 * rightFlexAmount;
+    }
+
     // MASSIVE BICEPS (left arm)
     push();
     fill(skinColor);
-    translate(-this.size * 1.0, this.size * 2.0, 0);
+    translate(-this.size * 1.0, leftArmY, leftArmZ);
     box(this.size * 0.45, this.size * 0.7, this.size * 0.45);
     pop();
 
     // MASSIVE BICEPS (right arm)
     push();
     fill(skinColor);
-    translate(this.size * 1.0, this.size * 2.0, 0);
+    translate(this.size * 1.0, rightArmY, rightArmZ);
     box(this.size * 0.45, this.size * 0.7, this.size * 0.45);
     pop();
 
     // FOREARMS (left)
     push();
     fill(skinColor);
-    translate(-this.size * 1.0, this.size * 2.8, 0);
+    translate(-this.size * 1.0, leftForearmY, leftArmZ);
     box(this.size * 0.4, this.size * 0.6, this.size * 0.4);
     pop();
 
     // FOREARMS (right)
     push();
     fill(skinColor);
-    translate(this.size * 1.0, this.size * 2.8, 0);
+    translate(this.size * 1.0, rightForearmY, rightArmZ);
     box(this.size * 0.4, this.size * 0.6, this.size * 0.4);
     pop();
 
@@ -1129,6 +1245,47 @@ class Player {
 
     pop();
   }
+
+  startFlexSpeech() {
+    // Cancel any existing speech
+    this.speechSynth.cancel();
+    if (this.speechInterval) {
+      clearInterval(this.speechInterval);
+    }
+
+    // Say "six seven" repeated 9 times
+    const utterance = new SpeechSynthesisUtterance(
+      "six seven six seven six seven six seven six seven six seven six seven six seven six seven"
+    );
+    utterance.rate = 0.5; // Normal speed
+    utterance.pitch = 1.5; // Higher pitch for tenor voice
+
+    // Try to find a male voice
+    const voices = this.speechSynth.getVoices();
+    const maleVoice = voices.find(
+      (voice) =>
+        voice.name.includes("Male") ||
+        voice.name.includes("male") ||
+        voice.name.includes("David") ||
+        voice.name.includes("Microsoft Mark")
+    );
+    if (maleVoice) {
+      utterance.voice = maleVoice;
+    }
+
+    this.speechSynth.speak(utterance);
+  }
+
+  stopFlexSpeech() {
+    // Stop any ongoing speech
+    this.speechSynth.cancel();
+
+    // Clear the interval
+    if (this.speechInterval) {
+      clearInterval(this.speechInterval);
+      this.speechInterval = null;
+    }
+  }
 }
 
 // Third Person Camera
@@ -1178,8 +1335,7 @@ class ThirdPersonCamera {
 
     let camX = this.target.pos.x + sin(this.angleH) * camDistance;
     let camZ = this.target.pos.z + cos(this.angleH) * camDistance;
-    let camY =
-      this.target.pos.y + camHeight + camDistance * sin(this.angleV);
+    let camY = this.target.pos.y + camHeight + camDistance * sin(this.angleV);
 
     this.pos.set(camX, camY, camZ);
   }
@@ -1213,7 +1369,7 @@ class Terrain {
         x: random(-this.size / 2, this.size / 2),
         z: random(-this.size / 2, this.size / 2),
         radius: random(60, 180),
-        height: random(30, 100)
+        height: random(30, 100),
       });
     }
 
@@ -1223,7 +1379,7 @@ class Terrain {
         x: random(-this.size / 2, this.size / 2),
         z: random(-this.size / 2, this.size / 2),
         radius: random(80, 150),
-        depth: random(10, 25)
+        depth: random(10, 25),
       });
     }
   }
@@ -1991,7 +2147,7 @@ class Enemy {
     // HP bar foreground
     let hpPercent = this.hp / this.maxHp;
     fill(0, 255, 0);
-    translate(-15 + (15 * hpPercent), 0, 0.5);
+    translate(-15 + 15 * hpPercent, 0, 0.5);
     box(30 * hpPercent, 3, 1);
 
     pop();
@@ -2028,13 +2184,14 @@ function findHighestEvenTerrain() {
 
     // Prefer higher terrain with less variation (flatter)
     // Weight: higher terrain is better, but must be reasonably flat
-    if (avgVariation < 30) { // Only consider if reasonably flat
+    if (avgVariation < 30) {
+      // Only consider if reasonably flat
       if (centerHeight > bestPosition.height) {
         bestPosition = {
           x: testX,
           z: testZ,
           height: centerHeight,
-          flatness: avgVariation
+          flatness: avgVariation,
         };
       }
     }
@@ -2111,7 +2268,15 @@ function createLevel() {
 
   // Castle - place on highest even terrain
   let castleLocation = findHighestEvenTerrain();
-  console.log(`Castle placed at (${castleLocation.x.toFixed(0)}, ${castleLocation.z.toFixed(0)}) - Height: ${castleLocation.height.toFixed(1)}, Flatness: ${castleLocation.flatness.toFixed(1)}`);
+  console.log(
+    `Castle placed at (${castleLocation.x.toFixed(
+      0
+    )}, ${castleLocation.z.toFixed(
+      0
+    )}) - Height: ${castleLocation.height.toFixed(
+      1
+    )}, Flatness: ${castleLocation.flatness.toFixed(1)}`
+  );
   levelObjects.push(new Castle(castleLocation.x, castleLocation.z));
 
   // Decorative blocks - question blocks style
@@ -2152,7 +2317,8 @@ function createLevel() {
 
       // Check distance from castle
       let distToCastle = dist(x, z, castleLocation.x, castleLocation.z);
-      if (distToCastle > 400) { // At least 400 units away from castle
+      if (distToCastle > 400) {
+        // At least 400 units away from castle
         validPosition = true;
       }
     }
@@ -2169,7 +2335,7 @@ function createLevel() {
 // Input handling
 function keyPressed() {
   // Resume audio context on first user interaction (browser autoplay policy)
-  if (audioContext && audioContext.state === 'suspended') {
+  if (audioContext && audioContext.state === "suspended") {
     audioContext.resume();
   }
 
@@ -2189,7 +2355,7 @@ function keyReleased() {
 
 function mousePressed() {
   // Resume audio context on first user interaction (browser autoplay policy)
-  if (audioContext && audioContext.state === 'suspended') {
+  if (audioContext && audioContext.state === "suspended") {
     audioContext.resume();
   }
 
@@ -2208,3 +2374,6 @@ function mousePressed() {
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
 }
+
+// Prevent right-click context menu
+document.addEventListener('contextmenu', event => event.preventDefault());
