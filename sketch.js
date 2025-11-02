@@ -1606,23 +1606,6 @@ class Castle {
     translate(this.x, 0, this.z);
     let groundY = terrain.getHeightAt(this.x, this.z);
 
-    // === MOAT (surrounding the castle) ===
-    push();
-    translate(0, groundY + 10, 0);
-    fill(40, 80, 120); // Dark water
-    noStroke();
-    // Outer moat ring
-    for (let angle = 0; angle < TWO_PI; angle += 0.2) {
-      push();
-      let radius = 260;
-      let x = sin(angle) * radius;
-      let z = cos(angle) * radius;
-      translate(x, 0, z);
-      box(60, 30, 60);
-      pop();
-    }
-    pop();
-
     // === STONE BRIDGE / DRAWBRIDGE ===
     push();
     translate(0, groundY - 5, 200);
@@ -1877,7 +1860,7 @@ class Castle {
     pop();
 
     // === DEFENSIVE SPIKES (around outer perimeter) ===
-    // Wooden spikes/stakes in front of moat
+    // Wooden spikes/stakes around castle perimeter
     for (let angle = 0; angle < TWO_PI; angle += 0.4) {
       push();
       let radius = 290;
@@ -2260,7 +2243,7 @@ function createLevel() {
   for (let i = 0; i < 40; i++) {
     // Distance between platforms (gaps get wider as we progress, but capped)
     let gapDistance = random(80, 120) + i * 1; // Reduced from i * 2
-    gapDistance = constrain(gapDistance, 80, 145); // Cap maximum gap at 145 units
+    gapDistance = constrain(gapDistance, 80, 90); // Cap maximum gap at 90 units for main path
 
     // CONVERGE TO GOLDEN PLATFORM in last few platforms
     if (i >= 40 - convergenceDistance) {
@@ -2269,7 +2252,7 @@ function createLevel() {
       let distToGolden = dist(currentX, currentZ, goldenPlatformX, goldenPlatformZ);
 
       // Move toward golden platform with safe gap limits
-      let maxSafeGap = 120; // Cap convergence gaps at 120 units
+      let maxSafeGap = 90; // Cap convergence gaps at 90 units
       let moveDistance = min(maxSafeGap, distToGolden * 0.6); // Slower convergence (60% vs 80%)
       direction = angleToGolden;
       currentX += cos(direction) * moveDistance;
@@ -2403,7 +2386,8 @@ function createLevel() {
 
   for (let i = 0; i < 18; i++) {
     // Challenging gaps but not impossible - reduced from original
-    let expressGap = random(100, 140) + i * 1.2; // Max ~161 units, slower progression
+    let expressGap = random(80, 100) + i * 1.2; // Max ~100 units for hard path
+    expressGap = constrain(expressGap, 80, 100); // Cap maximum gap at 100 units
 
     // CONVERGE TO GOLDEN PLATFORM in last 5 platforms (more gradual)
     const expressConvergeDist = 5;
@@ -2413,7 +2397,7 @@ function createLevel() {
       let distToGolden = dist(expressX, expressZ, goldenPlatformX, goldenPlatformZ);
 
       // Move toward golden platform with safe gap limits
-      let maxSafeGap = 130; // Cap convergence gaps at 130 units
+      let maxSafeGap = 100; // Cap convergence gaps at 100 units
       let moveDistance = min(maxSafeGap, distToGolden * 0.6); // Slower convergence (60% vs 80%)
       expressDirection = angleToGolden;
       expressX += cos(expressDirection) * moveDistance;
