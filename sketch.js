@@ -766,11 +766,16 @@ class Player {
     this.vel.y += this.gravity;
 
     // Check if mouse is within canvas bounds
-    let mouseOnScreen = mouseX >= 0 && mouseX <= windowWidth && mouseY >= 0 && mouseY <= windowHeight;
+    let mouseOnScreen =
+      mouseX >= 0 &&
+      mouseX <= windowWidth &&
+      mouseY >= 0 &&
+      mouseY <= windowHeight;
 
     // Movement relative to camera (only if mouse is on screen)
     let moveDir = createVector(0, 0, 0);
-    let currentSpeed = (mouseIsPressed && mouseButton === RIGHT) ? this.runSpeed : this.speed;
+    let currentSpeed =
+      mouseIsPressed && mouseButton === RIGHT ? this.runSpeed : this.speed;
 
     // If mouse is offscreen, stop horizontal movement immediately
     if (!mouseOnScreen) {
@@ -1281,12 +1286,26 @@ class Player {
       clearInterval(this.speechInterval);
     }
 
-    // Say "six seven" repeated 9 times
+    const speeches = [
+      "yo momma so basic she neutralized sulfuric acid",
+      "yo momma so dumb she tried to climb mountain dew",
+      "yo momma so fat when she fell on the sidewalk I didn't laugh but the sidewalk cracked up",
+      "yo momma so ugly Bob The Builder said 'I can't fix that'",
+      "yo momma so fat when she skips a meal the stock market drops",
+      "yo momma so lazy she stuck her nose out the window and let the wind blow it for her",
+      "yo momma so fat when she went on a diet she ended world hunger",
+      "yo momma so fat when she went to the movies she sat next to everyone",
+      "yo momma so fat not even Dora can explore her",
+      "yo momma so fat when she stepped on a scale it said I need your weight not your phone number",
+      "six seven six seven six seven",
+    ];
+
     const utterance = new SpeechSynthesisUtterance(
-      "six seven six seven six seven six seven six seven six seven six seven six seven six seven"
+      speeches[Math.ceil(Math.random() * (speeches.length - 1))]
     );
-    utterance.rate = 0.5; // Normal speed
-    utterance.pitch = 1.5; // Higher pitch for tenor voice
+
+    utterance.rate = 1; // Normal speed
+    utterance.pitch = 80; // Higher pitch for tenor voice
 
     // Try to find a male voice
     const voices = this.speechSynth.getVoices();
@@ -2248,8 +2267,16 @@ function createLevel() {
     // CONVERGE TO GOLDEN PLATFORM in last few platforms
     if (i >= 40 - convergenceDistance) {
       // Calculate direction toward golden platform
-      let angleToGolden = atan2(goldenPlatformZ - currentZ, goldenPlatformX - currentX);
-      let distToGolden = dist(currentX, currentZ, goldenPlatformX, goldenPlatformZ);
+      let angleToGolden = atan2(
+        goldenPlatformZ - currentZ,
+        goldenPlatformX - currentX
+      );
+      let distToGolden = dist(
+        currentX,
+        currentZ,
+        goldenPlatformX,
+        goldenPlatformZ
+      );
 
       // Move toward golden platform with safe gap limits
       let maxSafeGap = 90; // Cap convergence gaps at 90 units
@@ -2393,8 +2420,16 @@ function createLevel() {
     const expressConvergeDist = 5;
     if (i >= 18 - expressConvergeDist) {
       // Calculate direction toward golden platform
-      let angleToGolden = atan2(goldenPlatformZ - expressZ, goldenPlatformX - expressX);
-      let distToGolden = dist(expressX, expressZ, goldenPlatformX, goldenPlatformZ);
+      let angleToGolden = atan2(
+        goldenPlatformZ - expressZ,
+        goldenPlatformX - expressX
+      );
+      let distToGolden = dist(
+        expressX,
+        expressZ,
+        goldenPlatformX,
+        goldenPlatformZ
+      );
 
       // Move toward golden platform with safe gap limits
       let maxSafeGap = 100; // Cap convergence gaps at 100 units
@@ -2497,7 +2532,7 @@ function createLevel() {
     [-60, 0, -60],
     [60, 0, -60],
     [-60, 0, 60],
-    [60, 0, 60]
+    [60, 0, 60],
   ];
 
   for (let pillarPos of pillarPositions) {
@@ -2559,7 +2594,11 @@ function createLevel() {
     new LevelObject(
       "platform",
       createVector(0, -wallHeight / 2 + wallBottom, -terrainBoundary),
-      { w: terrainBoundary * 2 + wallThickness * 2, h: wallHeight, d: wallThickness },
+      {
+        w: terrainBoundary * 2 + wallThickness * 2,
+        h: wallHeight,
+        d: wallThickness,
+      },
       skyColor
     )
   );
@@ -2569,7 +2608,11 @@ function createLevel() {
     new LevelObject(
       "platform",
       createVector(0, -wallHeight / 2 + wallBottom, terrainBoundary),
-      { w: terrainBoundary * 2 + wallThickness * 2, h: wallHeight, d: wallThickness },
+      {
+        w: terrainBoundary * 2 + wallThickness * 2,
+        h: wallHeight,
+        d: wallThickness,
+      },
       skyColor
     )
   );
@@ -2666,4 +2709,4 @@ function windowResized() {
 }
 
 // Prevent right-click context menu
-document.addEventListener('contextmenu', event => event.preventDefault());
+document.addEventListener("contextmenu", (event) => event.preventDefault());
